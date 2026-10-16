@@ -1,7 +1,7 @@
 // Pure layout logic: turns a person in a GEDCOM file into positioned cards and lines.
 
 export const CARD_W = 130
-export const CARD_H = 70
+export const CARD_H = 86
 export const CARD_GAP = 8
 export const UNIT_W = CARD_W * 2 + CARD_GAP
 export const BLOCK_GAP = 24
@@ -13,6 +13,31 @@ function first(selection) {
   return selection.arraySelect()[0] || null
 }
 
+// Pull a 3-4 digit year out of a GEDCOM date such as "28 Feb 1945" or "ABT 1850".
+function yearFrom(text) {
+  if (!text) return null
+  const match = text.match(/\b(\d{3,4})\b/)
+  if (!match) return null
+  const approx = /^(abt|about|est|cal|bef|aft|bet|c\.?)/i.test(text.trim())
+  return (approx ? 'c. ' : '') + match[1]
+}
+
+// Builds text like "1945–2013", "1978–present", "1850–", or "".
+export function lifeSpan(record, thisYear = new Date().getFullYear()) {
+  const birthText = record.getEventBirth().getDate().value()[0] || null
+  const deathText = record.getEventDeath().getDate().value()[0] || null
+  const hasDeathEvent = record.getEventDeath().length > 0
+  const birth = yearFrom(birthText)
+  const death = yearFrom(deathText)
+
+  if (!birth && !death) return hasDeathEvent ? '–?' : ''
+  if (death) return `${birth || ''}–${death}`
+  if (hasDeathEvent) return `${birth || ''}–?`
+  const birthNum = parseInt((birth || '').replace(/\D/g, ''), 10)
+  if (birthNum && thisYear - birthNum <= 100) return `${birth}–present`
+  return `${birth || ''}–`
+}
+
 export function toPerson(record) {
   if (!record) return null
   const parts = record.getName().valueAsParts()[0] || []
@@ -21,6 +46,7 @@ export function toPerson(record) {
     given: parts[0] || '',
     surname: parts[1] || '',
     sex: record.getSex().value()[0] || '',
+    years: lifeSpan(record),
   }
 }
 

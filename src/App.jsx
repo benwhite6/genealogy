@@ -17,6 +17,7 @@ function Card({ person, x, y }) {
     <div style={{ ...cardBase, ...position, borderTop: `4px solid ${color}` }}>
       <div>{person.given}</div>
       <div>{person.surname}</div>
+      {person.years && <div style={{ fontWeight: 400, color: '#555' }}>{person.years}</div>}
     </div>
   )
 }
