@@ -1,30 +1,12 @@
-
 import { useState } from 'react'
 import { readGedcom } from 'read-gedcom'
+import { buildTree, CARD_W, CARD_H } from './tree.js'
 
-function toPerson(record) {
-  if (!record || record.length === 0) return null
-  const parts = record.getName().valueAsParts()[0] || []
-  return {
-    id: record.pointer()[0],
-    given: parts[0] || '',
-    surname: parts[1] || '',
-    sex: record.getSex().value()[0] || '',
-  }
-}
-
-function getParents(record) {
-  const family = record.getFamilyAsChild()
-  return {
-    father: toPerson(family.getHusband().getIndividualRecord()),
-    mother: toPerson(family.getWife().getIndividualRecord()),
-  }
-}
-
-function Card({ person }) {
+function Card({ person, x, y }) {
+  const position = { position: 'absolute', left: x, top: y }
   if (!person) {
     return (
-      <div style={{ ...cardBase, border: '1px dashed #aaa', color: '#999' }}>
+      <div style={{ ...cardBase, ...position, border: '1px dashed #aaa', color: '#999' }}>
         Unknown
       </div>
     )
@@ -32,7 +14,7 @@ function Card({ person }) {
   const color =
     person.sex === 'M' ? '#4aa3c8' : person.sex === 'F' ? '#d6336c' : '#999'
   return (
-    <div style={{ ...cardBase, borderTop: `4px solid ${color}` }}>
+    <div style={{ ...cardBase, ...position, borderTop: `4px solid ${color}` }}>
       <div>{person.given}</div>
       <div>{person.surname}</div>
     </div>
@@ -40,17 +22,18 @@ function Card({ person }) {
 }
 
 const cardBase = {
-  width: 130,
-  minHeight: 64,
+  width: CARD_W,
+  height: CARD_H,
   boxSizing: 'border-box',
   background: '#fff',
   boxShadow: '0 1px 3px rgba(0,0,0,0.3)',
   borderRadius: 3,
   padding: 8,
   textAlign: 'center',
-  fontSize: 14,
+  fontSize: 13,
   fontWeight: 600,
   color: '#222',
+  overflow: 'hidden',
 }
 
 function App() {
@@ -64,7 +47,7 @@ function App() {
       const buffer = await file.arrayBuffer()
       const gedcom = readGedcom(buffer)
       const first = gedcom.getIndividualRecord().arraySelect()[0]
-      setTree({ person: toPerson(first), ...getParents(first) })
+      setTree(buildTree(first))
       setError('')
     } catch (e) {
       setTree(null)
@@ -78,20 +61,28 @@ function App() {
       <input type="file" accept=".ged" onChange={handleFile} />
       {error && <p style={{ color: 'crimson' }}>{error}</p>}
       {tree && (
-        <div
-          style={{
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            marginTop: 32,
-          }}
-        >
-          <div style={{ display: 'flex', gap: 8 }}>
-            <Card person={tree.father} />
-            <Card person={tree.mother} />
+        <div style={{ overflowX: 'auto', marginTop: 32, paddingBottom: 16 }}>
+          <div
+            style={{
+              position: 'relative',
+              width: tree.width,
+              height: tree.height,
+              margin: '0 auto',
+            }}
+          >
+            <svg
+              width={tree.width}
+              height={tree.height}
+              style={{ position: 'absolute', left: 0, top: 0 }}
+            >
+              {tree.lines.map((d, i) => (
+                <path key={i} d={d} fill="none" stroke="#888" strokeWidth="2" />
+              ))}
+            </svg>
+            {tree.cards.map((c, i) => (
+              <Card key={i} person={c.person} x={c.x} y={c.y} />
+            ))}
           </div>
-          <div style={{ width: 2, height: 30, background: '#888' }} />
-          <Card person={tree.person} />
         </div>
       )}
     </div>
