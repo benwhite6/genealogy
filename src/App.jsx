@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { readGedcom } from 'read-gedcom'
 import { buildTree, CARD_W, CARD_H } from './tree.js'
+import ConnectionStatus from './ConnectionStatus.jsx'
 
 function Card({ person, x, y }) {
   const position = { position: 'absolute', left: x, top: y }
@@ -59,6 +60,7 @@ function App() {
   return (
     <div style={{ padding: '1rem' }}>
       <h1>Genealogy</h1>
+            <ConnectionStatus />
       <input type="file" accept=".ged" onChange={handleFile} />
       {error && <p style={{ color: 'crimson' }}>{error}</p>}
       {tree && (
