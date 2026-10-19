@@ -36,7 +36,7 @@ Status: agreed in planning, before the database is built.
 
 ## Visibility
 
-- Deceased people are visible to logged-in users (to confirm).
+- Deceased people are visible to logged-in users
 - Living people: details are visible to anyone within the descendants of the viewer's great-grandparents (and spouses of those), calculated from the viewer's home person. The same rule runs from the viewer's spouse's position. Adoptive links count; step links do not.
 - Beyond that circle, a connection request the owner approves.
 - Match previews for living people show only first name, approximate birth year, and general place.
